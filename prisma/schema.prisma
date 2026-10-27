@@ -1,0 +1,158 @@
+// This is your Prisma schema file for CampusTix
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum EventCategory {
+  CULTURALS
+  SYMPOSIUM
+  HACKATHON
+  MUSIC_NIGHT
+  DANCE_COMPETITION
+  SPORTS_MEET
+  WORKSHOPS
+}
+
+enum SeatStatus {
+  AVAILABLE
+  HELD
+  BOOKED
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  COMPLETED
+  REFUNDED
+  PENDING
+}
+
+model User {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  role         Role          @default(STUDENT)
+  rollNumber   String?
+  department   String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  bookings     Booking[]
+  holds        BookingHold[]
+  heldSeats    Seat[]        @relation("SeatHeldBy")
+
+  @@map("users")
+}
+
+model Event {
+  id              String        @id @default(uuid())
+  title           String
+  category        EventCategory
+  tagline         String
+  description     String
+  date            String        // YYYY-MM-DD
+  startTime       String        // HH:mm
+  endTime         String
+  venue           String
+  locationDetails String
+  totalCapacity   Int
+  availableSeats  Int
+  image           String
+  organizer       String
+  organizerContact String?
+  featured        Boolean       @default(false)
+  status          String        @default("upcoming")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  tiers           TicketTier[]
+  seats           Seat[]
+  bookings        Booking[]
+  holds           BookingHold[]
+
+  @@map("events")
+}
+
+model TicketTier {
+  id          String   @id @default(uuid())
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name        String
+  price       Int      @default(0) // in cents/INR
+  capacity    Int
+  available   Int
+  description String
+  perks       String[] // PostgreSQL string array
+  createdAt   DateTime @default(now())
+
+  @@map("ticket_tiers")
+}
+
+model Seat {
+  id            String     @id @default(uuid())
+  eventId       String
+  event         Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  seatNumber    String     // e.g. "A1", "B4"
+  row           String     // "A", "B", etc.
+  tierId        String
+  status        SeatStatus @default(AVAILABLE)
+  heldById      String?
+  heldByUser    User?      @relation("SeatHeldBy", fields: [heldById], references: [id])
+  holdExpiresAt DateTime?
+
+  @@unique([eventId, seatNumber])
+  @@map("seats")
+}
+
+model BookingHold {
+  id          String   @id @default(uuid())
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tierId      String
+  ticketCount Int
+  seatNumbers String[] // e.g. ["A1", "A2"]
+  totalAmount Int
+  expiresAt   DateTime // 10 minutes from creation
+  createdAt   DateTime @default(now())
+
+  @@map("booking_holds")
+}
+
+model Booking {
+  id               String        @id @default(uuid())
+  bookingId        String        @unique // e.g. "CTIX-2026-X89K2"
+  eventId          String
+  event            Event         @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  userId           String
+  user             User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  tierName         String
+  ticketCount      Int
+  seatNumbers      String[]
+  totalAmount      Int
+  paymentMethod    String        // "upi", "card", "free"
+  paymentReference String?
+  paymentStatus    PaymentStatus @default(COMPLETED)
+  bookingStatus    BookingStatus @default(CONFIRMED)
+  qrCodePayload    String
+  createdAt        DateTime      @default(now())
+  cancelledAt      DateTime?
+
+  @@map("bookings")
+}

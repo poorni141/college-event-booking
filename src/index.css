@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: #121116;
+    color: #f4f2f8;
+  }
+  
+  .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #121116;
+}
+::-webkit-scrollbar-thumb {
+  background: #2b2738;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #463e5c;
+}
+
+/* Print ticket styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-ticket, #printable-ticket * {
+    visibility: visible;
+  }
+  #printable-ticket {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    background: #ffffff !important;
+    color: #121116 !important;
+    border: 1px solid #cbd5e1 !important;
+  }
+  #printable-ticket .ticket-dark-invert {
+    background: #f8fafc !important;
+    color: #121116 !important;
+    border-color: #e2e8f0 !important;
+  }
+  #printable-ticket .ticket-text-invert {
+    color: #121116 !important;
+  }
+  #printable-ticket .ticket-muted-invert {
+    color: #64748b !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

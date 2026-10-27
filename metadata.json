@@ -1,0 +1,6 @@
+{
+  "name": "CampusTix - College Event Ticket & Reservation Platform",
+  "description": "Premium collegiate event ticketing and reservation platform with real-time seat holds, QR entry passes, demo payments, and organizer management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
